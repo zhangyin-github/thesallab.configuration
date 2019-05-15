@@ -1,7 +1,7 @@
 # thesallab.configuration
 ## Introduction
 thesallab.configuration is used by various projects produced by the Sal Lab, e.g., PPCode3.
-## How to build
+## How to build and install
     mvn clean package install
 ## How to use
 Add the following jvm parameters:
