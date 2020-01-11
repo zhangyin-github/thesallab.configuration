@@ -1,6 +1,5 @@
 # thesallab.configuration
 ![The SaL Lab](sallab.png)
-## Introduction
 thesallab.configuration is used by various projects produced by the Sal Lab
 , e.g., [PPCode3](https://github.com/zhangyin-github/PPCode3).
 ## How to build and install
