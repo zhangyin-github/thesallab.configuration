@@ -15,6 +15,7 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.StreamSupport;
 
@@ -52,8 +53,8 @@ public class Config {
      */
     public static final String configWorkingMode =
             System.getProperty(CONFIG_WORKING_MODE) ==
-                    null ? CONFIG_WORKING_MODE_GLOBAL : System.getProperty
-                    (CONFIG_WORKING_MODE);
+                    null ? CONFIG_WORKING_MODE_GLOBAL :
+                    System.getProperty(CONFIG_WORKING_MODE);
 
     // **************** 私有变量
 
@@ -75,9 +76,7 @@ public class Config {
     /**
      * 本地线程配置信息对象。
      */
-    private static final ThreadLocal<CompositeConfiguration>
-            threadLocalConfiguration = ThreadLocal.withInitial(() ->
-            newConfiguration());
+    private static final ThreadLocal<CompositeConfiguration> threadLocalConfiguration = ThreadLocal.withInitial(() -> newConfiguration());
 
     // **************** 继承方法
 
@@ -189,6 +188,24 @@ public class Config {
         }
 
         return value;
+    }
+
+    /**
+     * 获取用于读取的路经数组。
+     *
+     * @param key 配置项键。
+     * @return 路经数组。
+     */
+    public static String[] getPathsForRead(String key) {
+        String[] values = getStringArray(key);
+
+        if (Arrays.stream(values).anyMatch(p -> !new File(p).exists())) {
+            throw new ConfigItemException(key, "Paths do not exist: " +
+                    String.join(", ",
+                            Arrays.stream(values).filter(p -> !new File(p).exists()).toArray(String[]::new)));
+        }
+
+        return values;
     }
 
     /**
@@ -315,9 +332,7 @@ public class Config {
             throw cie;
         }
 
-        return StreamSupport.stream(array.spliterator(), false).map
-                (DoubleNode.class::cast).mapToDouble(DoubleNode::asDouble)
-                .toArray();
+        return StreamSupport.stream(array.spliterator(), false).map(DoubleNode.class::cast).mapToDouble(DoubleNode::asDouble).toArray();
     }
 
     /**
@@ -331,8 +346,8 @@ public class Config {
 
         ArrayNode arrays;
         try {
-            arrays = (ArrayNode) new ObjectMapper().readTree
-                    (doubleArraysString);
+            arrays =
+                    (ArrayNode) new ObjectMapper().readTree(doubleArraysString);
         } catch (Exception e) {
             ConfigItemException cie = new ConfigItemException(key,
                     "should be" + " a json array of double array.", e);
@@ -340,12 +355,7 @@ public class Config {
             throw cie;
         }
 
-        return StreamSupport.stream(arrays.spliterator(), false).map
-                (ArrayNode.class::cast).map(p -> StreamSupport.stream(p
-                .spliterator(), false).map(DoubleNode.class::cast)
-                .mapToDouble(DoubleNode::asDouble).toArray()).collect
-                (ArrayList<double[]>::new, ArrayList::add, ArrayList::addAll)
-                .toArray(new double[0][]);
+        return StreamSupport.stream(arrays.spliterator(), false).map(ArrayNode.class::cast).map(p -> StreamSupport.stream(p.spliterator(), false).map(DoubleNode.class::cast).mapToDouble(DoubleNode::asDouble).toArray()).collect(ArrayList<double[]>::new, ArrayList::add, ArrayList::addAll).toArray(new double[0][]);
     }
 
     /**
@@ -410,8 +420,7 @@ public class Config {
             throw cie;
         }
 
-        return StreamSupport.stream(array.spliterator(), false).map(IntNode
-                .class::cast).mapToInt(IntNode::asInt).toArray();
+        return StreamSupport.stream(array.spliterator(), false).map(IntNode.class::cast).mapToInt(IntNode::asInt).toArray();
     }
 
     /**
@@ -433,11 +442,7 @@ public class Config {
             throw cie;
         }
 
-        return StreamSupport.stream(arrays.spliterator(), false).map
-                (ArrayNode.class::cast).map(p -> StreamSupport.stream(p
-                .spliterator(), false).map(IntNode.class::cast).mapToInt
-                (IntNode::asInt).toArray()).collect(ArrayList<int[]>::new,
-                ArrayList::add, ArrayList::addAll).toArray(new int[0][]);
+        return StreamSupport.stream(arrays.spliterator(), false).map(ArrayNode.class::cast).map(p -> StreamSupport.stream(p.spliterator(), false).map(IntNode.class::cast).mapToInt(IntNode::asInt).toArray()).collect(ArrayList<int[]>::new, ArrayList::add, ArrayList::addAll).toArray(new int[0][]);
     }
 
     /**
@@ -451,8 +456,8 @@ public class Config {
 
         ArrayNode arrays;
         try {
-            arrays = (ArrayNode) new ObjectMapper().readTree
-                    (stringArraysString);
+            arrays =
+                    (ArrayNode) new ObjectMapper().readTree(stringArraysString);
         } catch (Exception e) {
             ConfigItemException cie = new ConfigItemException(key,
                     "should be" + " a json array of string array.", e);
@@ -460,11 +465,7 @@ public class Config {
             throw cie;
         }
 
-        return StreamSupport.stream(arrays.spliterator(), false).map
-                (ArrayNode.class::cast).map(p -> StreamSupport.stream(p
-                .spliterator(), false).map(JsonNode::asText).toArray
-                (String[]::new)).collect(ArrayList<String[]>::new,
-                ArrayList::add, ArrayList::addAll).toArray(new String[0][]);
+        return StreamSupport.stream(arrays.spliterator(), false).map(ArrayNode.class::cast).map(p -> StreamSupport.stream(p.spliterator(), false).map(JsonNode::asText).toArray(String[]::new)).collect(ArrayList<String[]>::new, ArrayList::add, ArrayList::addAll).toArray(new String[0][]);
     }
 
     /**
@@ -486,8 +487,7 @@ public class Config {
             throw cie;
         }
 
-        return StreamSupport.stream(array.spliterator(), false).map
-                (JsonNode::asText).toArray(String[]::new);
+        return StreamSupport.stream(array.spliterator(), false).map(JsonNode::asText).toArray(String[]::new);
     }
 
     /**
@@ -606,8 +606,7 @@ public class Config {
 
         CompositeConfiguration configuration = new CompositeConfiguration();
         try {
-            configuration.addConfiguration(new PropertiesConfiguration(System
-                    .getProperty(CONFIG_FILE)));
+            configuration.addConfiguration(new PropertiesConfiguration(System.getProperty(CONFIG_FILE)));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
             throw new RuntimeException(e);
