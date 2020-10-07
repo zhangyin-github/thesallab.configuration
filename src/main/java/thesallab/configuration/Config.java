@@ -196,7 +196,7 @@ public class Config {
      * @param key 配置项键。
      * @return 路经数组。
      */
-    public static String[] getPathsForRead(String key) {
+    public static String[] getPathArrayForRead(String key) {
         String[] values = getStringArray(key);
 
         if (Arrays.stream(values).anyMatch(p -> !new File(p).exists())) {
