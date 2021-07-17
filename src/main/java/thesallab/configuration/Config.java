@@ -229,7 +229,7 @@ public class Config {
             Arrays.stream(values).map(p -> new File(p)).toArray(File[]::new);
         File[] existingFiles =
             Arrays.stream(files).filter(p -> p.exists()).toArray(File[]::new);
-        if (!Arrays.stream(existingFiles).anyMatch(p -> !p.isFile())) {
+        if (Arrays.stream(existingFiles).anyMatch(p -> !p.isFile())) {
             throw new ConfigItemException(key,
                 "Path already exists and is not a file.");
         }
