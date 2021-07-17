@@ -201,12 +201,24 @@ public class Config {
     public static String[] getPathArrayForRead(String key) {
         String[] values = getStringArray(key);
 
-        if (Arrays.stream(values).anyMatch(p -> !new File(p).exists())) {
-            throw new ConfigItemException(key, "Paths do not exist: " + String
-                .join(", ",
-                    Arrays.stream(values).filter(p -> !new File(p).exists())
-                        .toArray(String[]::new)));
+        if (Arrays.stream(values).anyMatch(p -> p.endsWith("/"))) {
+            throw new ConfigItemException(key,
+                "Path should not end with \"/\"");
         }
+
+        File[] files =
+            Arrays.stream(values).map(p -> new File(p)).toArray(File[]::new);
+        File[] existingFiles =
+            Arrays.stream(files).filter(p -> p.exists()).toArray(File[]::new);
+        if (!Arrays.stream(existingFiles).anyMatch(p -> !p.isFile())) {
+            throw new ConfigItemException(key,
+                "Path already exists and is not a file.");
+        }
+        Arrays.stream(existingFiles).filter(p -> p.isFile())
+            .forEach(p -> p.delete());
+
+        Arrays.stream(files).map(p -> p.getParentFile())
+            .filter(p -> !p.exists()).forEach(p -> p.mkdirs());
 
         return values;
     }
@@ -235,7 +247,22 @@ public class Config {
     public static String getPathForWrite(String key) {
         String value = getNotNull(key);
 
-        File folder = new File(value);
+        if (key.endsWith("/")) {
+            throw new ConfigItemException(key,
+                "Path should not end with \"/\"");
+        }
+
+        File file = new File(value);
+        if (file.exists()) {
+            if (file.isFile()) {
+                file.delete();
+            } else {
+                throw new ConfigItemException(key,
+                    "Path already exists and is not a file.");
+            }
+        }
+
+        File folder = file.getParentFile();
         if (!folder.exists()) {
             folder.mkdirs();
         }
