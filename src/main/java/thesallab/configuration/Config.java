@@ -201,6 +201,25 @@ public class Config {
     public static String[] getPathArrayForRead(String key) {
         String[] values = getStringArray(key);
 
+        if (Arrays.stream(values).anyMatch(p -> !new File(p).exists())) {
+            throw new ConfigItemException(key, "Paths do not exist: " + String
+                .join(", ",
+                    Arrays.stream(values).filter(p -> !new File(p).exists())
+                        .toArray(String[]::new)));
+        }
+
+        return values;
+    }
+
+    /**
+     * 获取用于写入的路径数组。
+     *
+     * @param key 配置项键。
+     * @return 路经数组。
+     */
+    public static String[] getPathArrayForWrite(String key) {
+        String[] values = getStringArray(key);
+
         if (Arrays.stream(values).anyMatch(p -> p.endsWith("/"))) {
             throw new ConfigItemException(key,
                 "Path should not end with \"/\"");
@@ -219,21 +238,6 @@ public class Config {
 
         Arrays.stream(files).map(p -> p.getParentFile())
             .filter(p -> !p.exists()).forEach(p -> p.mkdirs());
-
-        return values;
-    }
-
-    /**
-     * 获取用于写入的路径数组。
-     *
-     * @param key 配置项键。
-     * @return 路经数组。
-     */
-    public static String[] getPathArrayForWrite(String key) {
-        String[] values = getStringArray(key);
-
-        Arrays.stream(values).map(p -> new File(p)).filter(p -> !p.exists())
-            .forEach(p -> p.mkdirs());
 
         return values;
     }
